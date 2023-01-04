@@ -1,0 +1,212 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Socket深度解析笔记 | Windingmonth'Blog</title><meta name="author" content="Windingmonth"><meta name="copyright" content="Windingmonth"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Socket是什么？Socket，又称套接字，是Linux跨进程通信（IPC，Inter Process Communication）方式的一种。相比于其他IPC方式，Socket更牛的地方在于，它不仅仅可以做到同一台主机内跨进程通信，它还可以做到不同主机间的跨进程通信。根据通信域的不同可以划分成2种：Unix domain socket 和 Internet domain socket。 1.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Socket深度解析笔记">
+<meta property="og:url" content="http://liurunshi.work/2023/01/05/%E6%96%B0%E5%BB%BA%E6%96%87%E6%9C%AC%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="Windingmonth&#39;Blog">
+<meta property="og:description" content="Socket是什么？Socket，又称套接字，是Linux跨进程通信（IPC，Inter Process Communication）方式的一种。相比于其他IPC方式，Socket更牛的地方在于，它不仅仅可以做到同一台主机内跨进程通信，它还可以做到不同主机间的跨进程通信。根据通信域的不同可以划分成2种：Unix domain socket 和 Internet domain socket。 1.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://miro.medium.com/max/1200/1*HGd3gJH5yTrjO7yf1_lU8A.png">
+<meta property="article:published_time" content="2023-01-04T16:21:43.859Z">
+<meta property="article:modified_time" content="2023-01-04T16:25:38.860Z">
+<meta property="article:author" content="Windingmonth">
+<meta property="article:tag" content="Socket">
+<meta property="article:tag" content="Unix">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://miro.medium.com/max/1200/1*HGd3gJH5yTrjO7yf1_lU8A.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://liurunshi.work/2023/01/05/%E6%96%B0%E5%BB%BA%E6%96%87%E6%9C%AC%E6%96%87%E6%A1%A3/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: 'Just',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Socket深度解析笔记',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-01-05 00:25:38'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="css/background.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://avatars.githubusercontent.com/u/96288314?v=4" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://blog.fundebug.com/2017/04/17/about-docker-sock/01.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Windingmonth'Blog</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Socket深度解析笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2023-01-04T16:21:43.859Z" title="Created 2023-01-05 00:21:43">2023-01-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2023-01-04T16:25:38.860Z" title="Updated 2023-01-05 00:25:38">2023-01-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Socket/">Socket</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Socket深度解析笔记"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h3 id="Socket是什么？"><a href="#Socket是什么？" class="headerlink" title="Socket是什么？"></a>Socket是什么？</h3><p>Socket，又称套接字，是Linux跨进程通信（IPC，Inter Process Communication）方式的一种。<br>相比于其他IPC方式，Socket更牛的地方在于，它不仅仅可以做到同一台主机内跨进程通信，它还可以做到不同主机间的跨进程通信。根据通信域的不同可以划分成2种：Unix domain socket 和 Internet domain socket。</p>
+<h4 id="1-Internet-domain-socket"><a href="#1-Internet-domain-socket" class="headerlink" title="1. Internet domain socket"></a>1. Internet domain socket</h4><p>Internet domain socket用于实现不同主机上的进程间通信，大部分情况下我们所说的socket都是指internet domain socket。<br>通信的核心是必须知道目标是谁，也就是应该如何标识目标。<br>同一台机器使用pid要标识进程。如果要在不同机器之间通信，靠pid远远不够。<br>我们知道通过主机IP可以唯一锁定主机，而通过端口可以定位到程序，而进程间通信我们还需要知道通信用的什么协议。这样一来“IP+端口+协议”的组合就可以唯一标识网络中一台主机上的一个进程。</p>
+<p>而这三个参数也是生成socket的主要参数。<br><img src="https://www.laowangomg.com/wp-content/uploads/2020/08/Socket%E9%80%9A%E4%BF%A1%E6%A8%A1%E5%9E%8B.png" alt="image"></p>
+<p>为了维护两端的连接，我们的Socket光有自己的唯一标识还不够，还需要对方的唯一标识，所以一个上面说的发送端和接收端Socket其实都只有一半。<br>一个完整的Socket的组成应该是由[协议，本地地址，本地端口，远程地址，远程端口] 组成的一个5维数组。<br>比如发送端的Socket就是 [tcp，发送端IP，发送端port，接收端IP，接收端port]，<br>那么接收端的Socket就是 [tcp，接收端IP，接收端port，发送端IP，发送端port]。</p>
+<blockquote>
+<p>Socket根据通信协议的不同还可以分为3种：流式套接字(SOCK_STREAM)，数据报套接字(SOCK_DGRAM)及原始套接字</p>
+</blockquote>
+<p>流式套接字(SOCK_STREAM) &#x3D;&gt; TCP协议<br>数据报套接字(SOCK_DGRAM) &#x3D;&gt; UDP协议<br>原始套接字 &#x3D;&gt; 允许对低层协议如IP或ICMP直接访问，主要用于新的网络协议实现的测试等</p>
+<h4 id="2-Unix-domain-socket"><a href="#2-Unix-domain-socket" class="headerlink" title="2. Unix domain socket"></a>2. Unix domain socket</h4><p>Unix domain socket 又叫 IPC(inter-process communication 进程间通信) socket，用于实现同一主机上的进程间通信。<br>socket 原本是为网络通讯设计的，但后来在 socket 的框架上发展出一种 IPC 机制，就是 UNIX domain socket。<br>虽然 Internet domain socket 也可用于同一台主机的进程间通讯(通过 loopback 地址 127.0.0.1)，但是 UNIX domain socket 用于 IPC 更有效率：不需要经过网络协议栈，不需要打包拆包、计算校验和、维护序号和应答等，只是将应用层数据从一个进程拷贝到另一个进程。<br>这是因为，IPC 机制本质上是可靠的通讯，而网络协议是为不可靠的通讯设计的。</p>
+<p>docker采用的client-server架构就是使用Unix domain socket通信的。Docker daemon监听一个docker.sock文件，<br>这个docker.sock文件的默认路径是&#x2F;var&#x2F;run&#x2F;docker.sock，这个Socket就是一个Unix domain socket。</p>
+<h3 id="Internet-domain-socket-案例实践分析"><a href="#Internet-domain-socket-案例实践分析" class="headerlink" title="(Internet domain socket)案例实践分析"></a>(Internet domain socket)案例实践分析</h3><p>先用Go整一个小案例，这是一个socket的服务端，有三个功能</p>
+<blockquote>
+<p>客户端发送ping，回pong<br>客户端发送echo xxx, 回xxx<br>客户端发送quit, 关闭socket连接</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">	&quot;fmt&quot;</span><br><span class="line">	&quot;net&quot;</span><br><span class="line">	&quot;strings&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func connHandler(c net.Conn) &#123;</span><br><span class="line">	if c == nil &#123;</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	buf := make([]byte, 4096)</span><br><span class="line">	for &#123;</span><br><span class="line">		cnt, err := c.Read(buf)</span><br><span class="line">		if err != nil || cnt == 0 &#123;</span><br><span class="line">			c.Close()</span><br><span class="line">			break</span><br><span class="line">		&#125;</span><br><span class="line">		inStr := strings.TrimSpace(string(buf[0:cnt]))</span><br><span class="line">		inputs := strings.Split(inStr, &quot; &quot;)</span><br><span class="line">		switch inputs[0] &#123;</span><br><span class="line">		case &quot;ping&quot;:</span><br><span class="line">			c.Write([]byte(&quot;pong\n&quot;))</span><br><span class="line">		case &quot;echo&quot;:</span><br><span class="line">			echoStr := strings.Join(inputs[1:], &quot; &quot;) + &quot;\n&quot;</span><br><span class="line">			c.Write([]byte(echoStr))</span><br><span class="line">		case &quot;quit&quot;:</span><br><span class="line">			c.Close()</span><br><span class="line">			break</span><br><span class="line">		default:</span><br><span class="line">			fmt.Printf(&quot;Unsupported command: %s\n&quot;, inputs[0])</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Printf(&quot;Connection from %v closed. \n&quot;, c.RemoteAddr())</span><br><span class="line">&#125;</span><br><span class="line">func main() &#123;</span><br><span class="line">	server, err := net.Listen(&quot;tcp&quot;, &quot;:1208&quot;)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		fmt.Printf(&quot;Fail to start server, %s\n&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(&quot;Server Started ...&quot;)</span><br><span class="line">	for &#123;</span><br><span class="line">		conn, err := server.Accept()</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			fmt.Printf(&quot;Fail to connect, %s\n&quot;, err)</span><br><span class="line">			break</span><br><span class="line">		&#125;</span><br><span class="line">		go connHandler(conn)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong>Tip</strong>: 因为我linux没有Go编译环境，我是在window编译完之后把可执行包丢linux机器跑的，具体操作记录一下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">window: 在go源码文件所在目录cmd，执行命令</span><br><span class="line">set GOARCH=amd64</span><br><span class="line">set GOOS=linux</span><br><span class="line">go build xxx.go</span><br><span class="line">执行完成之后会生成一个没有后缀的xxx文件</span><br><span class="line">将该文件丢到linux中，赋予执行权限（chmod 777 xxx）</span><br><span class="line">执行即可</span><br><span class="line"></span><br><span class="line">root@VM-0-10-ubuntu:/usr/go# chmod 777 socket-server </span><br><span class="line">root@VM-0-10-ubuntu:/usr/go# ./socket-server     </span><br><span class="line">Server Started ...</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>在socket服务启动之后，使用命令查看server进程的pid,可以看到pid&#x3D;232291.<br>在Linux系统中，通常socket文件在&#x2F;proc&#x2F;pid&#x2F;fd&#x2F;文件路径下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">root@VM-0-10-ubuntu:~# lsof -i :1208</span><br><span class="line">COMMAND      PID USER   FD   TYPE  DEVICE SIZE/OFF NODE NAME</span><br><span class="line">socket-se 232291 root    3u  IPv6 1314606      0t0  TCP *:1208 (LISTEN)</span><br><span class="line"></span><br><span class="line">root@VM-0-10-ubuntu:~# ls -l /proc/232291/fd</span><br><span class="line">total 0</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:22 0 -&gt; /dev/pts/0</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:22 1 -&gt; /dev/pts/0</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:22 2 -&gt; /dev/pts/0</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:22 3 -&gt; &#x27;socket:[1314606]&#x27;</span><br><span class="line"></span><br><span class="line">可以看到/proc/232291/fd/3是一个链接文件，指向socket:[1314606]，</span><br><span class="line">这个便是server端的socket。socket-server启动经历了socket() --&gt; bind() --&gt; listen()3个过程，创建了这个LISTEN socket用来监听对1208端口的连接请求。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>客户端</strong>：在linux中使用telnet连接socket，然后发送命令.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@VM-0-10-ubuntu:~# telnet localhost 1208</span><br><span class="line">Trying 127.0.0.1...</span><br><span class="line">Connected to localhost.</span><br><span class="line">Escape character is &#x27;^]&#x27;.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>在客户端连接之后，再看看 &#x2F;proc&#x2F;232291&#x2F;fd 发生了什么变化？<br>可以发现多了一个socket文件 socket:[1318942]</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">root@VM-0-10-ubuntu:~# ls -l /proc/232291/fd</span><br><span class="line">total 0</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:22 0 -&gt; /dev/pts/0</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:22 1 -&gt; /dev/pts/0</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:22 2 -&gt; /dev/pts/0</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:22 3 -&gt; &#x27;socket:[1314606]&#x27;</span><br><span class="line">lrwx------ 1 root root 64 Jan  4 23:24 4 -&gt; &#x27;socket:[1318942]&#x27;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>再看看1208端口发生了什么变化？<br>多了<br>TCP localhost:1208-&gt;localhost:54972 (ESTABLISHED)<br>TCP localhost:54972-&gt;localhost:1208 (ESTABLISHED)</p>
+<p>localhost:1208-&gt;localhost:54972 (ESTABLISHED)是server端为client端建立的新的socket，负责和client通信，所属进程pid是232291<br>localhost:54972-&gt;localhost:1208 (ESTABLISHED)是client端为server端建立的新的socket，负责和server通信，所属进程pid是232687</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">root@VM-0-10-ubuntu:~# lsof -i :1208</span><br><span class="line">COMMAND      PID USER   FD   TYPE  DEVICE SIZE/OFF NODE NAME</span><br><span class="line">socket-se 232291 root    3u  IPv6 1314606      0t0  TCP *:1208 (LISTEN)</span><br><span class="line">socket-se 232291 root    4u  IPv6 1318942      0t0  TCP localhost:1208-&gt;localhost:54972 (ESTABLISHED)</span><br><span class="line">telnet    232687 root    3u  IPv4 1318941      0t0  TCP localhost:54972-&gt;localhost:1208 (ESTABLISHED)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h4 id="梳理整个流程"><a href="#梳理整个流程" class="headerlink" title="梳理整个流程"></a>梳理整个流程</h4><p>到此为止，我们来总结下从telnet发起连接，到客户端发出ping，服务端响应pong，到最后客户端quit，连接断开的整个过程：</p>
+<p>1.telnet发起向localhost:1208发起连接请求；<br>2.在三次握手过程中，服务端和客户端分别建立对彼此的socket，<br>TCP localhost:1208-&gt;localhost:54972 (ESTABLISHED)<br>TCP localhost:54972-&gt;localhost:1208 (ESTABLISHED)<br>3.客户端发出ping，ping数据包send到socket: TCP localhost:51090-&gt;localhost:1208 ；<br>4.服务端通过socket: TCP localhost:1208-&gt;localhost:54972收到ping数据包，返回pong，pong数据包又通过原路返回到客户端 ，完成一次通信。<br>5.客户端进程发起quit请求，通过上述相同的socket路径到达服务端后，服务端切断连接，服务端删除socket: TCP localhost:1208-&gt;localhost:54972释放文件句柄；客户端删除 socket: TCP localhost:54972-&gt;localhost:1208，释放端口 54972。</p>
+<p>在上述过程中，socket到socket之间还要经过操作系统，网络栈等过程。</p>
+<h3 id="Unix-domain-socket-案例实践分析"><a href="#Unix-domain-socket-案例实践分析" class="headerlink" title="(Unix domain socket)案例实践分析"></a>(Unix domain socket)案例实践分析</h3><p>我们知道docker使用的是client-server架构，用户通过docker client输入命令，client将命令转达给docker daemon去执行。<br>docker daemon会监听一个unix domain socket来与其他进程通信，默认路径为&#x2F;var&#x2F;run&#x2F;docker.sock。我们来看看这个文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># ls -l /var/run/docker.sock </span><br><span class="line">srw-rw---- 1 root docker 0 Aug 31 01:19 /var/run/docker.sock</span><br></pre></td></tr></table></figure>
+<p>可以看到它的Linux文件类型是“s”，也就是socket。<br>通过这个socket，我们可以直接调用docker daemon的API进行操作。<br>接下来我们通过docker.sock调用API来运行一个nginx容器，相当于在docker client上执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># docker run nginx</span><br></pre></td></tr></table></figure>
+<p>与在docker client上一行命令搞定不同的是，通过API的形式运行容器需要2步：创建容器和启动容器。</p>
+<ol>
+<li>创建nginx容器，我们使用curl命令调用docker API，通过–unix-socket &#x2F;var&#x2F;run&#x2F;docker.sock指定Unix domain socket。首先调用&#x2F;containers&#x2F;create，并传入参数指定镜像为nginx，如下：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># curl -XPOST --unix-socket /var/run/docker.sock -d &#x27;&#123;&quot;Image&quot;:&quot;nginx&quot;&#125;&#x27; -H &#x27;Content-Type: application/json&#x27; http://localhost/containers/create</span><br><span class="line">&#123;&quot;Id&quot;:&quot;67bfc390d58f7ba9ac808d3fc948a5d4e29395e94288a7588ec3523af6806e1a&quot;,&quot;Warnings&quot;:[]&#125;</span><br></pre></td></tr></table></figure></li>
+<li>启动容器，通过上一步创建容器返回的容器id，我们来启动这个nginx：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># curl -XPOST --unix-socket /var/run/docker.sock http://localhost/containers/67bfc390d58f7ba9ac808d3fc948a5d4e29395e94288a7588ec3523af6806e1a/start</span><br><span class="line"># docker container ls</span><br><span class="line">CONTAINER ID        IMAGE                         COMMAND                  CREATED              STATUS              PORTS                  NAMES</span><br><span class="line">67bfc390d58f        nginx                         &quot;/docker-entrypoint.…&quot;   About a minute ago   Up 7 seconds        80/tcp                 romantic_heisenberg</span><br></pre></td></tr></table></figure>
+至此，通过Unix domain socket我们实现了客户端进程curl与服务端进程docker daemon间的通信，并成功地调用了docker API运行了一个nginx container。</li>
+</ol>
+<p>值得注意的是，在连接服务端的Unix domain socket的时候，我们直接指定的是服务端的socket文件。而在使用Internet domain socket的时候，我们指定的是服务端的IP地址和端口号。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="http://liurunshi.work">Windingmonth</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://liurunshi.work/2023/01/05/%E6%96%B0%E5%BB%BA%E6%96%87%E6%9C%AC%E6%96%87%E6%A1%A3/">http://liurunshi.work/2023/01/05/%E6%96%B0%E5%BB%BA%E6%96%87%E6%9C%AC%E6%96%87%E6%A1%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Socket/">Socket</a><a class="post-meta__tags" href="/tags/Unix/">Unix</a></div><div class="post_share"><div class="social-share" data-image="https://miro.medium.com/max/1200/1*HGd3gJH5yTrjO7yf1_lU8A.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/01/04/Nginx%E5%9F%BA%E7%A1%80%E7%AC%94%E8%AE%B0/"><img class="next-cover" src="https://pic3.zhimg.com/v2-2b9fbd8d459c3f0ef6b98cf4b8c40f5a_180x120.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">Next Post</div><div class="next_info">Nginx基础笔记</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comment</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://avatars.githubusercontent.com/u/96288314?v=4" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Windingmonth</div><div class="author-info__description">The first step is always the hardest.</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/windingmonth"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">后端工程师，为了项目测试，搭个博客试试水。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Catalog</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Socket%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">Socket是什么？</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-Internet-domain-socket"><span class="toc-number">1.1.</span> <span class="toc-text">1. Internet domain socket</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-Unix-domain-socket"><span class="toc-number">1.2.</span> <span class="toc-text">2. Unix domain socket</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Internet-domain-socket-%E6%A1%88%E4%BE%8B%E5%AE%9E%E8%B7%B5%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">(Internet domain socket)案例实践分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A2%B3%E7%90%86%E6%95%B4%E4%B8%AA%E6%B5%81%E7%A8%8B"><span class="toc-number">2.1.</span> <span class="toc-text">梳理整个流程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Unix-domain-socket-%E6%A1%88%E4%BE%8B%E5%AE%9E%E8%B7%B5%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">(Unix domain socket)案例实践分析</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/01/05/%E6%96%B0%E5%BB%BA%E6%96%87%E6%9C%AC%E6%96%87%E6%A1%A3/" title="Socket深度解析笔记"><img src="https://miro.medium.com/max/1200/1*HGd3gJH5yTrjO7yf1_lU8A.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Socket深度解析笔记"/></a><div class="content"><a class="title" href="/2023/01/05/%E6%96%B0%E5%BB%BA%E6%96%87%E6%9C%AC%E6%96%87%E6%A1%A3/" title="Socket深度解析笔记">Socket深度解析笔记</a><time datetime="2023-01-04T16:21:43.859Z" title="Created 2023-01-05 00:21:43">2023-01-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/01/04/Nginx%E5%9F%BA%E7%A1%80%E7%AC%94%E8%AE%B0/" title="Nginx基础笔记"><img src="https://pic3.zhimg.com/v2-2b9fbd8d459c3f0ef6b98cf4b8c40f5a_180x120.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Nginx基础笔记"/></a><div class="content"><a class="title" href="/2023/01/04/Nginx%E5%9F%BA%E7%A1%80%E7%AC%94%E8%AE%B0/" title="Nginx基础笔记">Nginx基础笔记</a><time datetime="2023-01-04T11:48:25.512Z" title="Created 2023-01-04 19:48:25">2023-01-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/01/04/netcore%E9%9B%86%E6%88%90autofac/" title=".NET Core集成AutoFac"><img src="https://miro.medium.com/max/1400/1*bSPnbuB9tLYcWhOrVyvcQA.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt=".NET Core集成AutoFac"/></a><div class="content"><a class="title" href="/2023/01/04/netcore%E9%9B%86%E6%88%90autofac/" title=".NET Core集成AutoFac">.NET Core集成AutoFac</a><time datetime="2023-01-04T06:08:04.098Z" title="Created 2023-01-04 14:08:04">2023-01-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/01/04/xray+nginx%E5%88%86%E6%B5%81%E6%A8%A1%E5%BC%8F,%E5%85%B1%E7%94%A8443%E7%AB%AF%E5%8F%A3/" title="Xray+Nginx分流模式,共用443端口"><img src="https://miro.medium.com/max/1024/1*-x8MFV3CUVeETA7KeHoIeA.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xray+Nginx分流模式,共用443端口"/></a><div class="content"><a class="title" href="/2023/01/04/xray+nginx%E5%88%86%E6%B5%81%E6%A8%A1%E5%BC%8F,%E5%85%B1%E7%94%A8443%E7%AB%AF%E5%8F%A3/" title="Xray+Nginx分流模式,共用443端口">Xray+Nginx分流模式,共用443端口</a><time datetime="2023-01-04T05:17:51.494Z" title="Created 2023-01-04 13:17:51">2023-01-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Windingmonth</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between single-column and double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll To Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: 'Gyk4JDZoRgIHLNDr0szC9nPb-gzGzoHsz',
+      appKey: '6fwH9eCb5RX5V5OQVMXBfwoV',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Valine' === 'Valine' || !false) {
+  if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
